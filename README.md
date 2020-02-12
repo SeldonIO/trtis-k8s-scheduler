@@ -98,4 +98,4 @@ There are two options:
 
 ## Demo
 
- * A GKE Demo
+ * [A GKE Demo](samples/gke/README.md)
