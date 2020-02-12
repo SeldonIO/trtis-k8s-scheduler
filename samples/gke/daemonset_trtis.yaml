@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: trtis
+  labels:
+    app: trtis
+spec:
+  selector:
+    matchLabels:
+      app: trtis
+  template:
+    metadata:
+      labels:
+        app: trtis
+    spec:
+      containers:
+      - image: nvcr.io/nvidia/tensorrtserver:20.01-py3
+        command: ["/bin/bash","-c","mkdir -p /models/$(NODE_NAME) && trtserver --model-repository=/models/$(NODE_NAME)"]
+        imagePullPolicy: IfNotPresent
+        name: trtis
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - containerPort: 8000
+          hostPort: 8000
+          protocol: TCP
+        - containerPort: 8001
+          hostPort: 8001
+          protocol: TCP
+        - containerPort: 8002
+          hostPort: 8002
+          protocol: TCP
+        volumeMounts:
+        - name: nfs-volume-1
+          mountPath: "/models"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+      - image: seldonio/trtis-monitor:0.1
+        name: monitor
+        args: ["--node-name","$(NODE_NAME)","trtis-host","$(NODE_IP)"]
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 1
+      volumes:	 
+      - name: nfs-volume-1
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+          

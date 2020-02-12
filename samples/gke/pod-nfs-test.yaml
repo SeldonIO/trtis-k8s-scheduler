@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nfs-pv-demo-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-pv-demo
+  template:
+    metadata:
+      name: nfs-pv-pod
+      labels:
+        app: nfs-pv-demo
+    spec:
+      containers:
+      - image: busybox
+        name: nfs-pv-multi
+        command:
+        - sleep
+        - "36000"
+        imagePullPolicy: Always
+        name: busybox
+        volumeMounts:
+          # name should match from volumes section
+          - name: nfs-volume-1
+            mountPath: "/disk1"
+      volumes:
+      - name: nfs-volume-1
+        persistentVolumeClaim:
+          claimName: nfs-pvc

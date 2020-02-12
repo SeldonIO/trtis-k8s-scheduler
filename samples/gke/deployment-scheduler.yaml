@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trtis-scheduler
+  labels:
+    app: trtis-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trtis-scheduler
+  template:
+    metadata:
+      labels:
+        app: trtis-scheduler
+    spec:
+      serviceAccount: trtis-scheduler
+      containers:
+        - name: trtis-scheduler
+          image: seldonio/trtis-scheduler:0.1
+          imagePullPolicy: Always
