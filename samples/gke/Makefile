@@ -24,25 +24,38 @@ create-loadbalancer:
 	kubectl apply -f svc-trtis-demo.yaml
 
 teardown-demo:
-	kubectl delete -f pvc-nfs.yaml
-	kubectl delete -f svc-nfs.yaml
-	kubectl delete -f deployment-nfs.yaml
 	kubectl delete -f daemonset_trtis.yaml
 	kubectl delete clusterrolebinding default-cluster-admin 
 	kubectl delete -f deployment-scheduler.yaml
 	kubectl delete -f trtis-scheduler-rbac.yaml
-	kubectl delete -f svc-trtis-demo.yaml
+	kubectl delete -f svc-nfs.yaml
+	kubectl delete -f deployment-nfs.yaml
+	kubectl delete -f pvc-nfs.yaml
+
+
 
 deploy-simple-model:
 	kubectl apply -f deployment-model-simple.yaml
 	kubectl rollout status deploy/trtis-model-simple
 
+undeploy-simple-model:
+	kubectl delete -f deployment-model-simple.yaml
+
 deploy-resnet-model:
 	kubectl apply -f deployment-model-resnet.yaml
 	kubectl rollout status deploy/trtis-model-resnet
 
+undeploy-resnet-model:
+	kubectl delete -f deployment-model-resnet.yaml
+
 deploy-resnet-model-toobig:
 	kubectl apply -f deployment-model-resnet-toobig.yaml
+
+undeploy-resnet-model-toobig:
+	kubectl delete -f deployment-model-resnet-toobig.yaml
+
+
+
 
 port-forward-proxy-simple:
 	kubectl port-forward $(kubectl get pods -n default -l app=trtis-model-simple -o jsonpath='{.items[0].metadata.name}') -n default 9000:9000

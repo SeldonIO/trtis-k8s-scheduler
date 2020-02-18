@@ -18,7 +18,7 @@ gcloud beta compute disks create nfs-disk --project=${PROJECT} --type=pd-standar
 Create a kubernetes cluster
 
 ```
-gcloud beta container --project ${PROJECT} clusters create "gpu-sharing-demo" --zone ${ZONE} --no-enable-basic-auth --cluster-version "1.13.11-gke.23" --machine-type "n1-standard-8" --accelerator "type=nvidia-tesla-k80,count=1" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "2" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias --network "projects/seldon-demos/global/networks/default" --subnetwork "projects/seldon-demos/regions/europe-west1/subnetworks/default" --default-max-pods-per-node "110" --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
+gcloud beta container --project ${PROJECT} clusters create "gpu-sharing-demo" --zone ${ZONE} --no-enable-basic-auth --cluster-version "1.13.12-gke.25" --machine-type "n1-standard-8" --accelerator "type=nvidia-tesla-k80,count=1" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "2" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias --network "projects/seldon-demos/global/networks/default" --subnetwork "projects/seldon-demos/regions/europe-west1/subnetworks/default" --default-max-pods-per-node "110" --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
 ```
 
 Connect to cluster
@@ -56,17 +56,14 @@ Start scheduler.
 make create-scheduler
 ```
 
-Create a service for this demo to allow us to connect to TRTIS server. In production you would need to either use proxy or create a specific service for scheduled pods based on which servers they are running on.
+Port forward to the two servers - you will need to get the pod names:
 
 ```
-make create-loadbalancer
+kubectl port-forward trtis-98j2t 8000:8000
 ```
 
-Get the IP of the loadbalancer:
-
 ```
-INGRESS=`kubectl get svc trtis-svc-demo -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
-echo $INGRESS
+kubectl port-forward trtis-pv9pt 9000:8000
 ```
 
 Deploy a simple model
@@ -75,10 +72,11 @@ Deploy a simple model
 make deploy-simple-model
 ```
 
-Test API
+Test API. One of the following will succeed.
 
 ```
-docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk simple_client -u ${INGRESS}:8000
+docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk simple_client -u 0.0.0.0:8000
+docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk simple_client -u 0.0.0.0:9000
 ```
 
 You should see something similar to:
@@ -182,10 +180,12 @@ Launch resnet model. This yaml asks for 11G of GPU memory which should fit on on
 make deploy-resnet-model
 ```
 
-Test API
+
+Test API. One of the following will succeed.
 
 ```
-docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk image_client -u ${INGRESS}:8000 -m resnet50_netdef -s INCEPTION images/mug.jpg
+docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk image_client -u 0.0.0.0:8000 -m resnet50_netdef -s INCEPTION images/mug.jpg
+docker run  --rm --net=host nvcr.io/nvidia/tensorrtserver:20.01-py3-clientsdk image_client -u 0.0.0.0:9000 -m resnet50_netdef -s INCEPTION images/mug.jpg
 ```
 
 You should see something like:
