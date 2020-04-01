@@ -22,6 +22,7 @@ We will mostly be concerned with scheduling.
  * [Ongoing discussion on GPU sharing in kubernetes issue](https://github.com/kubernetes/kubernetes/issues/52757)
  * [Fractional GPUs](https://github.com/sakjain92/Fractional-GPUs)
  * [Alibaba cloud GPU sharing](https://www.alibabacloud.com/blog/gpu-sharing-scheduler-extender-now-supports-fine-grained-kubernetes-clusters_594926)
+ * [Tencent Kubernetes Engine vGPU manager](https://github.com/tkestack/gpu-manager) Paper: [GaiaGPU: Sharing GPUs in Container Clouds](https://ieeexplore.ieee.org/document/8672318)
 
 ## Proposal
 Follow the work of Alibaba to provide a custom scheduler but rather than use a low level NVIDIA device plugin utilize TRTIS servers to run models.
